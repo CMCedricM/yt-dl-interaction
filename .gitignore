@@ -1,0 +1,5 @@
+.DS_Store
+Resources/Logs/
+Videos/
+Resources/secrets/secrets.json
+Resources/settings/settings.json

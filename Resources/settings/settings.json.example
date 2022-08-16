@@ -1,0 +1,6 @@
+{
+    "user" : "Program-User-Here(optional)",
+    "playlistID" : "place-id-here", 
+    "logOutputFolder" : "log-directory", 
+    "saveDirectory" : "save-videos-directory"
+}
