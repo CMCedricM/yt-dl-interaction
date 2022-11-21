@@ -10,10 +10,9 @@ from Resources.Logging import LOGGING
 # Debug Var     
 _Debug_Active = False 
 _Output_Loc = 2
-if len(sys.argv) > 1:
-    if sys.argv[1] == "--debug":
-        _Debug_Active = True 
-        _Output_Loc = 3
+if ("--debug" in sys.argv): 
+    _Debug_Active = True 
+    _Output_Loc = 3
 
 # Log Var     
 TIME_FORMAT ='%H:%M:%S'

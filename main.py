@@ -12,10 +12,16 @@ from Resources.removeTags import TagRemover
 # Debug Var     
 _Debug_Active = False 
 _Output_Loc = 2
-if len(sys.argv) > 1:
-    if sys.argv[1] == "--debug":
-        _Debug_Active = True 
-        _Output_Loc = 3
+# TODO : Check if finding these commands work 
+if('--debug' in sys.argv): 
+    _Debug_Active = True 
+    _Output_Loc = 3
+if('--addFolder' in sys.argv): 
+    _addFolder = True 
+
+# if len(sys.argv) > 1:
+#     if sys.argv[1] == "--debug":
+        
 
 # Log Var     
 TIME_FORMAT ='%H:%M:%S'
@@ -226,7 +232,15 @@ class yt_App:
         for root, _, files in os.walk(self._TempVidDirectory): 
             for aFile in files: 
                 try: 
-                    shutil.move(os.path.join(root,aFile), self._SaveVideoDirectory)
+                    # TODO: Test this to ensure that if we want a folder created for a song, that it does create the folder, and copy that folder to a 
+                    # source directory
+                    if(_addFolder): 
+                        dirName = os.path.join(root,os.path.splitext(aFile)[0])
+                        os.mkdir(dirName)
+                        shutil.move(os.path.join(root, aFile), dirName)
+                        shutil.move(dirName, self._SaveVideoDirectory)
+                    else: 
+                        shutil.move(os.path.join(root,aFile), self._SaveVideoDirectory)
                 except Exception as err: 
                     self._LOG.output(_Output_Loc, f"{time.strftime(TIME_FORMAT)} ---> Error: {err}")
 
