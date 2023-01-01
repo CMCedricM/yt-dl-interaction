@@ -38,7 +38,6 @@ class fireBase:
     def addData(self, user, name, artist, videoTag, status) -> None: 
 
         self._VideoList.append({
-            'uuid' : (str(uuid4())).replace('-', '')[:20],
             'user' : user,
             'name' : name, 
             'artist' : artist,
@@ -51,7 +50,7 @@ class fireBase:
         batch = self.firestore_client.batch()
        
         for items in self._VideoList: 
-            doc_ref = self.coll_ref.document(items['uuid'])
+            doc_ref = self.coll_ref.document((str(uuid4())).replace('-', '')[:20])
             batch.set(doc_ref, items)
         
         batch.commit()
@@ -91,7 +90,7 @@ if __name__ == '__main__':
     if '--debugAdd' in sys.argv:
         app.addData('test', 'test', 'test', 'test', 'test')
     if '--debugBatch' in sys.argv:
-        for i in range(0,5):
+        for i in range(0,2):
             app.addData('test', 'test', 'test', 'test', 'test')
         app.addDataBatch()
     app.updateFailedStatus('cedric-men', 'hy3R_4kyRn0', 'failed')
