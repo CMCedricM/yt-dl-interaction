@@ -7,6 +7,7 @@ class fireBase:
 
     def __init__(self) -> None:
         self._CollectionName = 'video-history'
+        self._VideoList = list()
         
     
     def setupConnections(self) -> None : 
@@ -19,9 +20,9 @@ class fireBase:
         print("Performing Test Query...")
         query_ref = self.coll_ref.where('user', '==', 'cedric-men')
         for items in query_ref.stream(): 
-            return (f"{items.id} => {items.to_dict()}")
+            print(f"{items.id} => {items.to_dict()}")
     
-    def addData(self, user, name, artist, videoTag, status) -> None: 
+    def addDataNUpload(self, user, name, artist, videoTag, status) -> None: 
   
         # Create a new uuid, aka a document title
         video_ref = self.coll_ref.document(str(uuid4()).replace('-', '')[:20])
@@ -33,7 +34,29 @@ class fireBase:
             'videoTag' : videoTag, 
             'status' : status, 
         })
+   
+    def addData(self, user, name, artist, videoTag, status) -> None: 
+
+        self._VideoList.append({
+            'uuid' : (str(uuid4())).replace('-', '')[:20],
+            'user' : user,
+            'name' : name, 
+            'artist' : artist,
+            'videoTag' : videoTag, 
+            'status' : status, 
+        })
     
+    
+    def addDataBatch(self): 
+        batch = self.firestore_client.batch()
+       
+        for items in self._VideoList: 
+            doc_ref = self.coll_ref.document(items['uuid'])
+            batch.set(doc_ref, items)
+        
+        batch.commit()
+        
+        
     # I may want to create a limit on how many times the program should attempt re-download
     # In this function the idea is to first grab the reference of the document that holds the user's failed video download
     # this requires the 'user' and the 'videoTag' to match in the query, so that ion update the wrong items
@@ -62,9 +85,13 @@ class fireBase:
 
 
 if __name__ == '__main__':
-   app = fireBase()
-   app.setupConnections()
-   print(app.debugFirebase())
-   if '--debugAdd' in sys.argv:
+    app = fireBase()
+    app.setupConnections()
+    app.debugFirebase()
+    if '--debugAdd' in sys.argv:
         app.addData('test', 'test', 'test', 'test', 'test')
-   app.updateFailedStatus('cedric-men', 'hy3R_4kyRn0', 'failed')
+    if '--debugBatch' in sys.argv:
+        for i in range(0,5):
+            app.addData('test', 'test', 'test', 'test', 'test')
+        app.addDataBatch()
+    app.updateFailedStatus('cedric-men', 'hy3R_4kyRn0', 'failed')
