@@ -3,3 +3,4 @@ Resources/Logs/
 Videos/
 Resources/secrets/secrets.json
 Resources/settings/settings.json
+Resources/database/serviceKey.json
