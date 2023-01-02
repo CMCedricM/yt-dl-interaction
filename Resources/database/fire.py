@@ -7,7 +7,7 @@ class fireBase:
 
     def __init__(self) -> None:
         self._CollectionName = 'video-history'
-        self._VideoList = list()
+        self._VideoList, self._DelList = list(), list() # These should be arrays of dictionaries
         
     
     def setupConnections(self) -> None : 
@@ -46,7 +46,7 @@ class fireBase:
         })
     
     
-    def addDataBatch(self): 
+    def commitAdditions(self): 
         batch = self.firestore_client.batch()
        
         for items in self._VideoList: 
@@ -70,11 +70,33 @@ class fireBase:
             doc_ref = self.coll_ref.document(doc_ref)
             doc_ref.update({'status' : status})
     
-    def getQueryObj(self): 
-        print(type(self.coll_ref))
-        return self.coll_ref
-        
     
+    def deleteAnItem(self, user, videoTag):
+        self._DelList.append({
+            'user' : user, 
+            'videoTag' : videoTag
+        })
+    
+    # TODO: For now lets implement a prototype then later we can test this when we decide 
+    # to add the functionality in
+    def commitDeletes(self): 
+        batch = self.firestore_client.batch()
+        for items in self._DelList: 
+            doc_ref = self.coll_ref.document(self.coll_ref.where('user', '==', items['user'])
+                                             .where('videoTag', '==', items['videoTag']))
+            # We will have to query for all documents that matches these filters
+            # Then delete them, typically there should only be one, but since queries only give us 
+            # a reference we must iterate through 
+            for candidate in doc_ref.stream(): 
+                batch.delete(candidate.id)
+        
+        batch.commit()
+        
+    def updateAnItem(self, user, videoTag, args=None): 
+        pass
+    
+    def getQueryObj(self) -> firestore.firestore.CollectionReference : 
+        return self.coll_ref
         
     
     
@@ -94,5 +116,5 @@ if __name__ == '__main__':
     if '--debugBatch' in sys.argv:
         for i in range(0,2):
             app.addData('test', 'test', 'test', 'test', 'test')
-        app.addDataBatch()
+        app.commitAdditions()
     app.updateFailedStatus('cedric-men', 'hy3R_4kyRn0', 'failed')

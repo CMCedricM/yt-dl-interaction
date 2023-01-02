@@ -143,18 +143,9 @@ class yt_App:
                 self._LOG.output(_Output_Loc, f"{time.strftime(TIME_FORMAT)} ---> There was an error uploading to the database ---> Error: \n{err}\n")
                 self.ErrorCnt += 1 
                 
-        self._COLLECTION.addDataBatch()
+        self._COLLECTION.commitAdditions()
                 
 
-    
-    def uploadData_old(self): 
-        try: 
-            self._COLLECTION.insert_one(self._VidDict)
-            if _Debug_Active: 
-                print(self._VidDict)
-        except Exception as err: 
-            self._LOG.output(_Output_Loc, f"{time.strftime(TIME_FORMAT)} ---> There was an error uploading to the database ---> Error: \n{err}\n")
-            self.ErrorCnt += 1 
     
     
     def checkForPastVids(self): 
@@ -191,7 +182,7 @@ class yt_App:
     
     
     def download(self): 
-        
+            
         self._TempVidDirectory = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Videos")
         if not os.path.exists(self._TempVidDirectory): 
             os.mkdir(self._TempVidDirectory)
@@ -203,7 +194,7 @@ class yt_App:
         for i, videoTag in enumerate(self._Vids): 
             statusCode = self._StatusCodes[2]
             try: 
-                if self.checkPrev(videoTag) == 0: 
+                if self.checkPrev(videoTag) == 0 and not ('--fillDatabase' in sys.argv): 
                     subprocess.run(['yt-dlp', '-fm4a', "--embed-thumbnail", "--embed-metadata", (str(self._YT_Begin) + str(videoTag))], check=True)
             except Exception as err: 
                 self._LOG.output(_Output_Loc, f"{time.strftime(TIME_FORMAT)} ---> Video {i} : {videoTag} ---> error: \n{err}\n")
@@ -220,12 +211,14 @@ class yt_App:
       
       
     def cleanMusicTags(self): 
+        if('--fillDatabase' in sys.argv): return
         self._TagRemoveProgram = TagRemover(self._TempVidDirectory, '[')
         self._TagRemoveProgram.run()
         self._LOG.output(_Output_Loc, f"{time.strftime(TIME_FORMAT)} ---> All Tags Cleaned!")
     
     
     def moveMusic(self): 
+        if('--fillDatabase' in sys.argv): return
         if not os.path.exists(self._SaveVideoDirectory): 
             self._LOG.output(_Output_Loc, f"{time.strftime(TIME_FORMAT)} ---> Error: {self._SaveVideoDirectory} Not Found")
             self.ErrorCnt += 1
