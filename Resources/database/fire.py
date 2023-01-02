@@ -49,7 +49,6 @@ class fireBase:
     def addDataBatch(self): 
         batch = self.firestore_client.batch()
        
-        print(self._VideoList)
         for items in self._VideoList: 
             doc_ref = self.coll_ref.document((str(uuid4())).replace('-', '')[:20])
             batch.set(doc_ref, items)
