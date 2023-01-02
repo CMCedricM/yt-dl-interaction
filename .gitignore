@@ -4,3 +4,7 @@ Videos/
 Resources/secrets/secrets.json
 Resources/settings/settings.json
 Resources/database/serviceKey.json
+*.pyc
+__pycache__
+test
+logFile.txt
