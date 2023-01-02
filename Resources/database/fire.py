@@ -49,6 +49,7 @@ class fireBase:
     def addDataBatch(self): 
         batch = self.firestore_client.batch()
        
+        print(self._VideoList)
         for items in self._VideoList: 
             doc_ref = self.coll_ref.document((str(uuid4())).replace('-', '')[:20])
             batch.set(doc_ref, items)
@@ -68,9 +69,11 @@ class fireBase:
             doc_ref = items.id
         if doc_ref:
             doc_ref = self.coll_ref.document(doc_ref)
-            doc_ref = doc_ref.update({'status' : status})
+            doc_ref.update({'status' : status})
     
-    
+    def getQueryObj(self): 
+        print(type(self.coll_ref))
+        return self.coll_ref
         
     
         

@@ -1,8 +1,8 @@
 #!/bin/python3 
 import os, sys, subprocess
-import json, time, pymongo
+import json, time
 import traceback
-from pymongo import MongoClient
+# from pymongo import MongoClient
 import googleapiclient.discovery as gAPI
 import shutil
 
@@ -49,7 +49,7 @@ class yt_App:
         
         # Variables to Hold Upload DAta
         # { date: { videoURL : [] } }
-        self._VidDict = dict() 
+        self._VidDict = list() 
         self._CurrDate = time.strftime('%Y-%d-%m')
         
         # Tag removing program
@@ -64,7 +64,7 @@ class yt_App:
         self._ProgramSetup.setup()
         # Assign Necessary Connection Values
         self._API_KEY, self._YT_Client, self._LOG = self._ProgramSetup.getKey(), self._ProgramSetup.getYTRef(), self._ProgramSetup.getLogRef()
-        self._DB, self._COLLECTION = self._ProgramSetup.getDBRef()
+        self._COLLECTION = self._ProgramSetup.getDBRef()
         self._Settings = (self._ProgramSetup.getSettings())
         try: 
             if self._Settings is not None: 
@@ -125,13 +125,29 @@ class yt_App:
     
     # Create Fields
     def saveToDict(self, videoID, status=None): 
-        if not self._VidDict: 
-            self._VidDict.update({"User" : self._User, "Date": self._CurrDate, "Video" : []})
+        self._VidDict.append({"user" : self._User, "name": '', "artist" : '', "videoTag" : videoID, "status" : status})
         
-        self._VidDict['Video'].append({'videoTag' : videoID, 'status' : status})
+       
+
+    def uploadData(self):
+        # Before Uploading, lets check if the item already exists, and if so, check the Status 
+        # We want to update the status if it is different, without actually creating a new documents
+        # this would save space
+        for items in self._VidDict: 
+            try:
+                if self.checkPrev(items['videoTag']) == 0:
+                    self._COLLECTION.addData(items['user'], items['name'], items['artist'], items['videoTag'],items['status'])     
+                else: 
+                    self._COLLECTION.updateFailedStatus(items['user'], items['videoTag'], items['status'])
+            except Exception as err: 
+                self._LOG.output(_Output_Loc, f"{time.strftime(TIME_FORMAT)} ---> There was an error uploading to the database ---> Error: \n{err}\n")
+                self.ErrorCnt += 1 
+                
+        self._COLLECTION.addDataBatch()
+                
+
     
-    
-    def uploadData(self): 
+    def uploadData_old(self): 
         try: 
             self._COLLECTION.insert_one(self._VidDict)
             if _Debug_Active: 
@@ -140,43 +156,35 @@ class yt_App:
             self._LOG.output(_Output_Loc, f"{time.strftime(TIME_FORMAT)} ---> There was an error uploading to the database ---> Error: \n{err}\n")
             self.ErrorCnt += 1 
     
-    def checkForPastVids(self): 
-        # Check if we want to skip the past video check
-        if len(sys.argv) > 2: 
-            if sys.argv[2] == "--fresh": 
-                return 
-            
-        try: 
-            # Example Query from prev program:
-            # self._patientCollection.find({'$and' : [{'PatientID' : ptID}, {'PatientName' : {'$regex': name, '$options' : 'i'}}]})
-            self._oldVids = self._COLLECTION.find({'User' : self._User}).sort("Date", pymongo.DESCENDING)[0]
-            if _Debug_Active: 
-                self._LOG.output(_Output_Loc, f"{time.strftime(TIME_FORMAT)} ---> Grabbed Previous Data:\n{self._oldVids}")
-        except Exception as err: 
-            self._LOG.output(_Output_Loc, f"{time.strftime(TIME_FORMAT)} ---> There was an error with grabbing past logs --> Error: \n{err}\n")
-            self._LOG.output(_Output_Loc, f"---> Traceback: {traceback.format_exc()}")
-            self.ErrorCnt += 1
-        else: 
-            tempArr = list()
-            # Now Grab All The Video Ids and save it temporarily, then replace old_Vids dict with this new array
-            for data in self._oldVids['Video']: 
-                tempArr.append(data)
-            self._oldVids = tempArr 
-            if _Debug_Active: 
-                self._LOG.output(_Output_Loc, f"{time.strftime(TIME_FORMAT)} ---> Old Video IDS:\n{self._oldVids}")
-        
     
-        
+    def checkForPastVids(self): 
+        self._oldVids = self._COLLECTION.getQueryObj().where('user', '==', self._User)
+        if not self._oldVids: return 
+        tempArr = list()
+        # Now Grab All The Video Ids and save it temporarily, then replace old_Vids dict with this new array
+        for data in self._oldVids.stream(): 
+            tempHold = data.to_dict()
+            tempArr.append({'videoTag' : tempHold['videoTag'], 'status' : tempHold['status']})
+        self._oldVids = tempArr
+        if _Debug_Active: 
+                self._LOG.output(_Output_Loc, f"{time.strftime(TIME_FORMAT)} ---> Old Video IDS:\n{self._oldVids}")
+     
+            
     def checkPrev(self, videoId) -> int: 
+        '''Returns 0 if the item does not already exist
+           Returns 1 if the items does exist
+        '''
         if len(list(self._oldVids)) == 0: 
             return 0 
-        
         for data in self._oldVids: 
             # If the video matches and it was previously downloaded succesfully, then return 1, indicating there is no need
-            # to download it again
+            # Or we may need to
+            # download it again if we find the videoTag and it was not previously downloaded successfully try again
             if videoId == data['videoTag'] and data['status'] == self._StatusCodes[0]: 
                 return 1 
-        
+            elif videoId == data['videoTag'] and data['status'] == self._StatusCodes[1]:
+                return 1
+       
         return 0 
             
             
@@ -196,7 +204,7 @@ class yt_App:
             statusCode = self._StatusCodes[2]
             try: 
                 if self.checkPrev(videoTag) == 0: 
-                    subprocess.run(['yt-dlp', '-fm4a', "--embed-thumbnail", "--embed-metadata", (self._YT_Begin + videoTag)], check=True)
+                    subprocess.run(['yt-dlp', '-fm4a', "--embed-thumbnail", "--embed-metadata", (str(self._YT_Begin) + str(videoTag))], check=True)
             except Exception as err: 
                 self._LOG.output(_Output_Loc, f"{time.strftime(TIME_FORMAT)} ---> Video {i} : {videoTag} ---> error: \n{err}\n")
                 statusCode = self._StatusCodes[1]
