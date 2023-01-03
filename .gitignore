@@ -3,3 +3,9 @@ Resources/Logs/
 Videos/
 Resources/secrets/secrets.json
 Resources/settings/settings.json
+Resources/database/serviceKey.json
+*.pyc
+Resources/__pycache__
+__pycache__
+test
+logFile.txt
