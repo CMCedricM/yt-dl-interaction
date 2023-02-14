@@ -6,21 +6,32 @@ from uuid import uuid4
 class fireBase: 
 
     def __init__(self) -> None:
-        self._CollectionName = 'video-history'
-        self._VideoList, self._DelList = list(), list() # These should be arrays of dictionaries
+        self._CollectionOfVidsName = 'video-history'
+        self._CollectionOfUserURLs = 'userPlaylists'
+        self._userPlaylistURLs, self._VideoList, self._DelList = list(), list(), list() # These should be arrays of dictionaries
         
+    
+    
+    def __queryForPlaylist(self): 
+        for items in self.userPlaylistRef.stream(): 
+            for data in items.to_dict()['userPlaylist']: 
+                self._userPlaylistURLs.append(data);
     
     def setupConnections(self) -> None : 
         self.cred = credentials.Certificate(os.path.join(os.path.dirname(__file__), 'serviceKey.json'))
         self.app = firebase_admin.initialize_app(self.cred)
         self.firestore_client = firestore.client()
-        self.coll_ref = self.firestore_client.collection(self._CollectionName)
+        self.coll_ref = self.firestore_client.collection(self._CollectionOfVidsName)
+        self.userPlaylistRef = self.firestore_client.collection(self._CollectionOfUserURLs)
+        
+    
         
     def debugFirebase(self) -> dict: 
         print("Performing Test Query...")
-        query_ref = self.coll_ref.where('user', '==', 'cedric-men')
-        for items in query_ref.stream(): 
-            print(f"{items.id} => {items.to_dict()}")
+        query_ref = self.__queryForPlaylist() #self.coll_ref.where('user', '==', 'cedric-men')
+        # for items in query_ref: 
+        #     print(f"{items.id} => {items.to_dict()}")
+        print(f"Playlist to monitor : {self._userPlaylistURLs}")
     
     def addDataNUpload(self, user, name, artist, videoTag, status) -> None: 
   
@@ -97,8 +108,12 @@ class fireBase:
     
     def getQueryObj(self) -> firestore.firestore.CollectionReference : 
         return self.coll_ref
-        
     
+    def getUserPlaylistsObj(self) -> firestore.firestore.CollectionReference :
+        return self.userPlaylistRef
+    
+    def getPlaylistsToMonitor(self) -> list : 
+        return self._userPlaylistURLs
     
         
 

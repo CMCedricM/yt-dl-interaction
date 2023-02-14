@@ -37,7 +37,7 @@ class yt_Program_Setup:
         
         
         self._API_KEY = None 
-        self._Collection, self._Vid_HistoryDataBase = None, None 
+        self._CollectionOfVids, self._Vid_HistoryDataBase = None, None 
         self._YT_Conn = None 
         
         # Startup Functions 
@@ -90,37 +90,20 @@ class yt_Program_Setup:
         self.JSONFILE = json.load(open(self.JSONFILE))
         # Lets Load Appropriate Keys/URLS
         self._API_KEY = self.JSONFILE["Keys"]["YT-Key"]
-        self._Collection = self.JSONFILE["URLS"]["MongoDB"]
+        self._CollectionOfVids = self.JSONFILE["URLS"]["MongoDB"]
         
     def linkDatabase(self): 
          # Output Attempt to Connect To DB
         self._LogFile.output(_Output_Loc, f"{time.strftime('%H:%M')} ---> Attempting Connection to User Database")
-        self._Collection = fireBase()
-        self._Collection.setupConnections()
+        self._FIRE_BASE_REF = fireBase()
+        self._FIRE_BASE_REF.setupConnections()
+        self._CollectionOfPlayURLS = self._FIRE_BASE_REF.getPlaylistsToMonitor()
         
         if _Debug_Active:
-            print(f"Function \'linkDataBase\' Types ---> {type(self._Collection)}")
+            print(f"Function \'linkDataBase\' Types ---> {type(self._CollectionOfVids)}")
             
     
-    # # Create Link to DataBase 
-    # def linkDatabase_old(self): 
-    #     # Output Attempt to Connect To DB
-    #     self._LogFile.output(_Output_Loc, f"{time.strftime('%H:%M')} ---> Attempting Connection to User Database")
-    #     # Attempt to Establish a Link to the Database 
-    #     client = MongoClient(self._DataBase)
-    #     # Check if the Link was Successful
-    #     try: 
-    #         client.server_info()
-    #     except Exception as err: 
-    #         self._LogFile.output(_Output_Loc, f"{time.strftime('%H:%M')} ---> Error Establishing Link!!! --->\n{err}\n")
-    #         exit(-1)
-    #     # Now set DataBase Var to the Actual Database, not the url  
-    #     self._DataBase = client[self._DBNAME]
-    #     # Now Set The Collection to the Correct Collection
-    #     self._Collection = self._DataBase[self._COLLNAME]
-        
-    #     if _Debug_Active:
-    #         print(f"Function \'linkDataBase\' Types ---> {type(self._DataBase), type(self._Collection)}")
+  
 
 
     # Actually Establish my link to YT
@@ -130,6 +113,7 @@ class yt_Program_Setup:
         except Exception as err: 
             self._LogFile.output(_Output_Loc, f"{time.strftime(TIME_FORMAT)} ---> Error Establishing YT Link --->\n{err}\n")
             exit(-1)
+            
         
        
        
@@ -137,7 +121,10 @@ class yt_Program_Setup:
     # Getter Functions, since ion want to inherit later on, for organization purposes  
     #
     def getDBRef(self): #-> tuple[pymongo.database.Database, pymongo.collection.Collection]: 
-        return self._Collection
+        return self._CollectionOfVids
+    
+    def getPlaylistToMonitor(self): 
+        return self._CollectionOfPlayURLS
     
     def getYTRef(self): 
         return self._YT_Conn

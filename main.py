@@ -68,7 +68,7 @@ class yt_App:
         self._Settings = (self._ProgramSetup.getSettings())
         try: 
             if self._Settings is not None: 
-                self._PlaylistURL = self._Settings['playlistID']
+                # self._PlaylistURL = self._Settings['playlistID']
                 self._SaveVideoDirectory = self._Settings['saveDirectory']
                 self._User = self._Settings['user']
         except Exception as err: 
@@ -78,8 +78,8 @@ class yt_App:
     
       
     # This will create a list of video tags in the playlist
-    def queryYT(self): 
-        if self._PlaylistURL is None: 
+    def queryYT(self, playlistURL=None): 
+        if not playlistURL: 
             self._LOG.output(3, f"{time.strftime(TIME_FORMAT)} ---> Error: No Playlist URL Specified")
             exit(-1)
         
@@ -92,7 +92,7 @@ class yt_App:
                 # Get the Response 
                 yt_Response = self._YT_Client.playlistItems().list(
                     part = 'contentDetails',
-                    playlistId = self._PlaylistURL, 
+                    playlistId = playlistURL, 
                     pageToken = next_Page_Token  
                 ).execute()
                   
@@ -147,6 +147,8 @@ class yt_App:
                 
 
     
+    def __getPlaylistURLS(self) -> list:
+        self._PlaylistURL =
     
     def checkForPastVids(self): 
         self._oldVids = self._COLLECTION.getQueryObj().where('user', '==', self._User)
