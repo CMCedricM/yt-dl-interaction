@@ -23,6 +23,8 @@ class fireBase:
         self.firestore_client = firestore.client()
         self.coll_ref = self.firestore_client.collection(self._CollectionOfVidsName)
         self.userPlaylistRef = self.firestore_client.collection(self._CollectionOfUserURLs)
+        # We need to query the palylists
+        self.__queryForPlaylist()
         
     
         
@@ -112,7 +114,7 @@ class fireBase:
     def getUserPlaylistsObj(self) -> firestore.firestore.CollectionReference :
         return self.userPlaylistRef
     
-    def getPlaylistsToMonitor(self) -> list : 
+    def getPlaylists(self) -> list : 
         return self._userPlaylistURLs
     
         

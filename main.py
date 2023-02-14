@@ -69,6 +69,8 @@ class yt_App:
         try: 
             if self._Settings is not None: 
                 # self._PlaylistURL = self._Settings['playlistID']
+                self._PlaylistURL = self._ProgramSetup.getPlaylistToMonitor();
+                print(f"data : {self._PlaylistURL}")
                 self._SaveVideoDirectory = self._Settings['saveDirectory']
                 self._User = self._Settings['user']
         except Exception as err: 
@@ -78,8 +80,8 @@ class yt_App:
     
       
     # This will create a list of video tags in the playlist
-    def queryYT(self, playlistURL=None): 
-        if not playlistURL: 
+    def queryYT(self, playlistURL): 
+        if not self._PlaylistURL: 
             self._LOG.output(3, f"{time.strftime(TIME_FORMAT)} ---> Error: No Playlist URL Specified")
             exit(-1)
         
@@ -128,7 +130,7 @@ class yt_App:
         self._VidDict.append({"user" : self._User, "name": '', "artist" : '', "videoTag" : videoID, "status" : status})
         
        
-
+    # TODO: find a way to link user info to videos, since we are no longer relyinf on the settings.json file 
     def uploadData(self):
         # Before Uploading, lets check if the item already exists, and if so, check the Status 
         # We want to update the status if it is different, without actually creating a new documents
@@ -147,8 +149,7 @@ class yt_App:
                 
 
     
-    def __getPlaylistURLS(self) -> list:
-        self._PlaylistURL =
+   
     
     def checkForPastVids(self): 
         self._oldVids = self._COLLECTION.getQueryObj().where('user', '==', self._User)
@@ -242,7 +243,9 @@ class yt_App:
         # Main Program Run 
         self.setupProgram()
         self.checkForPastVids()
-        self.queryYT()
+        for playlistURL in self._PlaylistURL:
+            self.queryYT(playlistURL)
+        
         self.download()
         self.uploadData()
         # Do The Clean Up 

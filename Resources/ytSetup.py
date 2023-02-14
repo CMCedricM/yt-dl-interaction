@@ -97,7 +97,7 @@ class yt_Program_Setup:
         self._LogFile.output(_Output_Loc, f"{time.strftime('%H:%M')} ---> Attempting Connection to User Database")
         self._FIRE_BASE_REF = fireBase()
         self._FIRE_BASE_REF.setupConnections()
-        self._CollectionOfPlayURLS = self._FIRE_BASE_REF.getPlaylistsToMonitor()
+        self._CollectionOfPlayURLS = self._FIRE_BASE_REF.getPlaylists()
         
         if _Debug_Active:
             print(f"Function \'linkDataBase\' Types ---> {type(self._CollectionOfVids)}")
@@ -121,9 +121,10 @@ class yt_Program_Setup:
     # Getter Functions, since ion want to inherit later on, for organization purposes  
     #
     def getDBRef(self): #-> tuple[pymongo.database.Database, pymongo.collection.Collection]: 
-        return self._CollectionOfVids
+        return self._FIRE_BASE_REF
     
     def getPlaylistToMonitor(self): 
+        print(f"Data Here {self._CollectionOfPlayURLS}")
         return self._CollectionOfPlayURLS
     
     def getYTRef(self): 
