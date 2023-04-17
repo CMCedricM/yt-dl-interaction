@@ -1,7 +1,15 @@
 import os, sys, subprocess
 from pathlib import Path
 
+closingTags : dict[str,str] = {
+    '(' : ')', 
+    '[' : ']'
+    
+    
+}
+
 class TagRemover: 
+    
     
     def __init__(self, dirName:str, bSeperator: chr): 
         self._DirName = Path(dirName)
@@ -17,15 +25,41 @@ class TagRemover:
             exit(-1)
             
     
+    def cleanName(self, fileName: str, bSeperator: chr) -> tuple[bool,str] : 
+        nameOfFile, extension = os.path.splitext(fileName)
+        retStr = ''
+        openCharacter, closeCharacter = bSeperator, ''
+        indexOpen, indexClose = 0,0
+        
+        try:
+            closeCharacter = closingTags[bSeperator]
+        except Exception as e:
+            print(f"Error, could not get closing character from character's dict, please verify your opening character has a closed character defined")
+            print(f"\nDefaulting to old Algorithm")
+            return self.cleanNameBackup(fileName, bSeperator)
+        try:
+            indexOpen = nameOfFile.rindex(openCharacter)
+        except Exception as e: 
+            return False, fileName
+        
+        try:
+            indexClose = nameOfFile.rindex(closeCharacter)
+        except Exception as e : 
+            print(f'Alert: Could not find closing character "{closeCharacter}, for file {fileName} defaulting to old algorithm"')
+            return self.cleanNameBackup(fileName, bSeperator)
+        
+        retStr = nameOfFile[0:indexOpen] + nameOfFile[indexClose+1:]
+        retStr = retStr[:len(retStr) - 1] + extension
+        
+        return True, retStr
     
-    def cleanName(self, fileName: str, bSeperator: chr) -> "tuple[bool, str]" : 
+    def cleanNameBackup(self, fileName: str, bSeperator: chr) -> "tuple[bool, str]" : 
         nameOfFile, extension = os.path.splitext(fileName)
         tempStr, appendToWord, wasMod = '', True, False
         
-        
         for words in nameOfFile.split(): 
             for chars in words: 
-                if chars == bSeperator: 
+                if chars == bSeperator:
                     appendToWord = False 
                     wasMod = True
             if appendToWord: 
