@@ -48,18 +48,10 @@ class TagRemover:
             print(f'Alert: Could not find closing character "{closeCharacter}, for file {fileName} defaulting to old algorithm"')
             return self.cleanNameBackup(fileName, bSeperator)
         
-        print(nameOfFile[indexClose+1:])
-        if(nameOfFile[indexClose+1:] == ''):
-             retStr = nameOfFile[0:indexOpen] + nameOfFile[indexClose:]
-        else:
-            retStr = nameOfFile[0:indexOpen] + nameOfFile[indexClose+1:]
+        retStr = nameOfFile[0:indexOpen] + nameOfFile[indexClose+1:]
         retStr = retStr[:len(retStr) - 1] + extension
-        # Recurse here until all the words within the tags are removed
-        finalStr = self.cleanName(retStr, bSeperator)[1]
-        if(finalStr == os.path.splitext(fileName)[0]):
-            return False, finalStr
         
-        return True, finalStr
+        return True, retStr
     
     def cleanNameBackup(self, fileName: str, bSeperator: chr) -> "tuple[bool, str]" : 
         nameOfFile, extension = os.path.splitext(fileName)
@@ -87,8 +79,6 @@ class TagRemover:
                 srcName = os.path.join(root, aFilename)
                 wasModified, destName = self.cleanName(aFilename, self._beginSeper)
                 if wasModified:
-                    print("here")
-                    print(destName)
                     os.rename(srcName, os.path.join(root, destName))
                     print(f"File Renamed: {aFilename} -> {destName} ")
                     self._modCount += 1 
