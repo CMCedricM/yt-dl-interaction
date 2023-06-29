@@ -8,10 +8,6 @@ closingTags : dict[str,str] = {
     
 }
 
-dry_run = False
-if('--dry-run' in sys.argv):
-    dry_run = True
-
 class TagRemover: 
     
     
@@ -99,12 +95,8 @@ class TagRemover:
                 if wasModified:
                     print("here")
                     print(destName)
-                    if(not dry_run):
-                        os.rename(srcName, os.path.join(root, destName))
-                        print(f"File Renamed: {aFilename} -> {destName} ")
-                    else: 
-                        print(f"Dry run args specified, will not rename files")
-                        print(f"File To Rename: {aFilename} -> {destName} ")
+                    # os.rename(srcName, os.path.join(root, destName))
+                    print(f"File Renamed: {aFilename} -> {destName} ")
                     self._modCount += 1 
                 
 

@@ -8,10 +8,6 @@ closingTags : dict[str,str] = {
     
 }
 
-dry_run = False
-if('--dry-run' in sys.argv):
-    dry_run = True
-
 class TagRemover: 
     
     
@@ -52,24 +48,10 @@ class TagRemover:
             print(f'Alert: Could not find closing character "{closeCharacter}, for file {fileName} defaulting to old algorithm"')
             return self.cleanNameBackup(fileName, bSeperator)
         
-        # Check if the indexclose is at the begginging or end of the string, since this would impact what gets modified
-        if(nameOfFile[indexClose+1:] == None):
-             retStr = nameOfFile[0:indexOpen] + nameOfFile[indexClose:] 
-        else:
-            retStr = nameOfFile[0:indexOpen] + nameOfFile[indexClose+1:]
-        # Handle An Extra Space at the End of the Cleaned File Name
-        if(retStr[len(retStr) - 1] == ' '):
-            retStr = retStr[0:len(retStr)-1]
-        # Connect the filename with the extension
-        retStr = retStr + extension
-        finalStr = retStr
-        # Recurse here until all the words within the tags are removed
-        if(nameOfFile.find(bSeperator) != -1) : 
-            finalStr = self.cleanName(retStr, bSeperator)[1]
-        if(finalStr == os.path.splitext(fileName)[0]):
-            return False, finalStr
+        retStr = nameOfFile[0:indexOpen] + nameOfFile[indexClose+1:]
+        retStr = retStr[:len(retStr) - 1] + extension
         
-        return True, finalStr
+        return True, retStr
     
     def cleanNameBackup(self, fileName: str, bSeperator: chr) -> "tuple[bool, str]" : 
         nameOfFile, extension = os.path.splitext(fileName)
@@ -97,14 +79,8 @@ class TagRemover:
                 srcName = os.path.join(root, aFilename)
                 wasModified, destName = self.cleanName(aFilename, self._beginSeper)
                 if wasModified:
-                    print("here")
-                    print(destName)
-                    if(not dry_run):
-                        os.rename(srcName, os.path.join(root, destName))
-                        print(f"File Renamed: {aFilename} -> {destName} ")
-                    else: 
-                        print(f"Dry run args specified, will not rename files")
-                        print(f"File To Rename: {aFilename} -> {destName} ")
+                    os.rename(srcName, os.path.join(root, destName))
+                    print(f"File Renamed: {aFilename} -> {destName} ")
                     self._modCount += 1 
                 
 

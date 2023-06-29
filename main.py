@@ -195,7 +195,8 @@ class yt_App:
             statusCode = self._StatusCodes[2]
             try: 
                 if self.checkPrev(videoTag) == 0 and not ('--fillDatabase' in sys.argv): 
-                    subprocess.run(['yt-dlp', '-fm4a', "--embed-thumbnail", "--embed-metadata", (str(self._YT_Begin) + str(videoTag))], check=True)
+                    # subprocess.run(['yt-dlp', '-fm4a', "--embed-thumbnail", "--embed-metadata", (str(self._YT_Begin) + str(videoTag))], check=True)
+                    subprocess.run(['yt-dlp', "--embed-thumbnail", "--embed-metadata", (str(self._YT_Begin) + str(videoTag))], check=True)
             except Exception as err: 
                 self._LOG.output(_Output_Loc, f"{time.strftime(TIME_FORMAT)} ---> Video {i} : {videoTag} ---> error: \n{err}\n")
                 statusCode = self._StatusCodes[1]
